@@ -2,7 +2,7 @@ import json
 import boto3
 import random
 from io import StringIO
-from change_calculator import calculate_change, process_file_content
+from change_calculator import calculate_change
 from currencies import get_supported_currencies, load_custom_currency, register_custom_currency
 
 def lambda_handler(event, context):

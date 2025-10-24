@@ -236,7 +236,9 @@ When `owed_amount * 100 % 3 == 0`:
 
 ## Deployment to AWS
 
-### 1. Create Lambda Function
+### Option 1: Traditional Zip Package Deployment
+
+#### 1. Create Lambda Function
 
 ```bash
 # Package the code
@@ -250,7 +252,7 @@ aws lambda create-function --function-name change-calculator \
   --zip-file fileb://change-calculator.zip
 ```
 
-### 2. Create API Gateway
+#### 2. Create API Gateway
 
 - Create REST API
 - Add POST method
@@ -258,10 +260,97 @@ aws lambda create-function --function-name change-calculator \
 - Enable query parameter `currency`
 - Enable CORS if needed
 
-### 3. Configure S3 (Optional)
+### Option 2: Container Image Deployment (Recommended)
 
-- Create buckets for input/output files
-- Update Lambda to read from/write to S3
+#### Prerequisites
+
+- Docker installed
+- AWS CLI configured
+- ECR repository access
+
+#### 1. Build and Push Container Image
+
+Set your AWS environment variables:
+
+```bash
+export AWS_REGION=us-east-1
+export AWS_ACCOUNT_ID=your-account-id
+```
+
+Run the build script:
+
+```bash
+chmod +x build.sh
+./build.sh
+```
+
+This will:
+
+- Build the Docker image
+- Authenticate with AWS ECR
+- Create ECR repository (if needed)
+- Push the image to ECR
+
+#### 2. Deploy Lambda Function with Container
+
+Run the deployment script:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+This will:
+
+- Create or update the Lambda function
+- Use the container image from ECR
+- Configure memory and timeout settings
+
+#### 3. Create API Gateway
+
+- Create REST API
+- Add POST method for `/calculate-change`
+- Add POST method for `/upload-currency`
+- Integrate with Lambda function
+- Enable query parameter `currency`
+- Enable CORS if needed
+
+#### 4. Test the Deployment
+
+```bash
+# Test change calculation
+curl -X POST https://your-api-gateway-url/calculate-change?currency=USD \
+  -H "Content-Type: text/plain" \
+  -d "2.13,3.00"
+
+# Test custom currency upload
+curl -X POST https://your-api-gateway-url/upload-currency \
+  -H "Content-Type: text/plain" \
+  -d "CURRENCY_CODE=TEST\nCURRENCY_NAME=Test Currency\nCURRENCY_SYMBOL=@\n100_note=10000\n50_note=5000"
+```
+
+### Local Container Testing
+
+Before deploying to AWS, test the container locally:
+
+```bash
+# Build the image
+docker build -t change-calculator:latest .
+
+# Run the container
+docker run -p 9000:8080 change-calculator:latest
+
+# Test with curl (in another terminal)
+curl -X POST http://localhost:9000/2015-03-31/functions/function/invocations \
+  -d '{"body": "2.13,3.00"}'
+```
+
+### Environment Variables
+
+For the deployment scripts, set these environment variables:
+
+- `AWS_REGION`: Your AWS region (default: us-east-1)
+- `AWS_ACCOUNT_ID`: Your AWS account ID
 
 ## Custom Currency API Usage
 
