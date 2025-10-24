@@ -1,0 +1,8 @@
+CURRENCY_CODE=TEST
+CURRENCY_NAME=Test Currency
+CURRENCY_SYMBOL=@
+100_note=10000
+50_note=5000
+10_coin=1000
+5_coin=500
+1_coin=100

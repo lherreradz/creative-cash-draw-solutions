@@ -1,0 +1,31 @@
+# Creative Cash Draw Solutions - Custom Currency Template
+# This file defines a custom currency for the change calculator
+# Copy this template and modify the values below
+
+# Currency Information
+CURRENCY_CODE=XXX
+CURRENCY_NAME=Example Currency
+CURRENCY_SYMBOL=#
+
+# Denominations (one per line)
+# Format: DENOMINATION_NAME=VALUE_IN_SMALLEST_UNIT
+# Values should be in the smallest unit of currency (e.g., cents, centavos)
+# List denominations from largest to smallest value
+
+# Example for a fictional currency with notes and coins:
+1000_note=100000    # 1000 unit note = 100,000 smallest units
+500_note=50000      # 500 unit note = 50,000 smallest units
+100_note=10000      # 100 unit note = 10,000 smallest units
+50_coin=5000        # 50 unit coin = 5,000 smallest units
+20_coin=2000        # 20 unit coin = 2,000 smallest units
+10_coin=1000        # 10 unit coin = 1,000 smallest units
+5_coin=500          # 5 unit coin = 500 smallest units
+1_coin=100          # 1 unit coin = 100 smallest units
+
+# Notes:
+# - DENOMINATION_NAME should be descriptive (e.g., "100_dollar", "50_cent", "1000_peso")
+# - VALUE_IN_SMALLEST_UNIT is the denomination value in the smallest currency unit
+# - For USD: penny = 1 cent, nickel = 5 cents, dime = 10 cents, etc.
+# - For EUR: 1 cent = 1, 2 cents = 2, 5 cents = 5, etc.
+# - List denominations in descending order of value
+# - The system will automatically handle pluralization in output

@@ -13,7 +13,9 @@ A serverless application that calculates optimal change denominations for cashie
 
 ## Supported Currencies
 
-### USD (United States Dollar)
+### Built-in Currencies
+
+#### USD (United States Dollar)
 
 - $1 (100 cents)
 - $0.25 (25 cents) - Quarter
@@ -21,7 +23,7 @@ A serverless application that calculates optimal change denominations for cashie
 - $0.05 (5 cents) - Nickel
 - $0.01 (1 cent) - Penny
 
-### EUR (Euro)
+#### EUR (Euro)
 
 - €2 (200 cents)
 - €1 (100 cents)
@@ -32,7 +34,7 @@ A serverless application that calculates optimal change denominations for cashie
 - €0.02 (2 cents)
 - €0.01 (1 cent)
 
-### COP (Colombian Peso)
+#### COP (Colombian Peso)
 
 - $50,000
 - $20,000
@@ -45,6 +47,60 @@ A serverless application that calculates optimal change denominations for cashie
 - $100
 - $50
 
+### Custom Currencies
+
+You can upload your own custom currency definitions using plain text files. Use the provided `currency_template.txt` as a starting point.
+
+#### Creating a Custom Currency
+
+1. Copy `currency_template.txt` to create your currency file
+2. Modify the following fields:
+
+   - `CURRENCY_CODE`: Unique 3-10 character code (alphanumeric + underscore)
+   - `CURRENCY_NAME`: Display name for your currency
+   - `CURRENCY_SYMBOL`: 1-3 character symbol (e.g., $, €, £)
+
+3. Define denominations using the format:
+
+   ```
+   DENOMINATION_NAME=VALUE_IN_SMALLEST_UNIT
+   ```
+
+   Example for a fictional currency:
+
+   ```
+   100_note=100000    # 100 unit note = 100,000 smallest units
+   50_note=50000      # 50 unit note = 50,000 smallest units
+   10_coin=10000      # 10 unit coin = 10,000 smallest units
+   ```
+
+#### Custom Currency File Format
+
+```
+# Currency Information
+CURRENCY_CODE=YOUR_CODE
+CURRENCY_NAME=Your Currency Name
+CURRENCY_SYMBOL=$
+
+# Denominations (from largest to smallest)
+1000_note=100000
+500_note=50000
+100_note=10000
+50_coin=5000
+20_coin=2000
+10_coin=1000
+5_coin=500
+1_coin=100
+```
+
+#### Validation Rules
+
+- Currency code: 3-10 alphanumeric characters (+ underscore)
+- Currency name: 1-50 characters
+- Currency symbol: 1-3 characters
+- Denominations: Positive integers, unique values, reasonable range (1-10,000,000)
+- At least one denomination required
+
 ## Architecture
 
 - **AWS Lambda**: Core change calculation logic
@@ -54,18 +110,19 @@ A serverless application that calculates optimal change denominations for cashie
 
 ## API Usage
 
-### Endpoint
+### Endpoints
+
+#### Change Calculation
 
 ```
 POST /calculate-change
 ```
 
-### Query Parameters
+**Query Parameters:**
 
-- `currency`: Currency code (USD, EUR, COP) - defaults to USD
+- `currency`: Currency code (USD, EUR, COP, or custom) - defaults to USD
 
-### Request
-
+**Request:**
 Upload a text file with lines in format: `owed_amount,paid_amount`
 
 Example file content:
@@ -76,14 +133,32 @@ Example file content:
 5.00,5.00
 ```
 
-### Response
-
+**Response:**
 Returns processed output with change breakdowns:
 
 ```
 5 dimes, 36 pennies, 1 penny
 3 quarters, 1 dime, 1 penny
 No change owed
+```
+
+#### Custom Currency Upload
+
+```
+POST /upload-currency
+```
+
+**Request:**
+Upload a custom currency definition file (see format below)
+
+**Response:**
+
+```json
+{
+  "message": "Custom currency XYZ registered successfully",
+  "currency_code": "XYZ",
+  "currency_name": "Example Currency"
+}
 ```
 
 ## Local Development
@@ -188,9 +263,60 @@ aws lambda create-function --function-name change-calculator \
 - Create buckets for input/output files
 - Update Lambda to read from/write to S3
 
-## Adding New Currencies
+## Custom Currency API Usage
 
-To add support for a new currency:
+### Uploading a Custom Currency
+
+1. Create a currency definition file using the template
+2. Upload it via the `/upload-currency` endpoint
+3. Use the returned currency code in change calculations
+
+### Example Custom Currency Upload
+
+**Request:**
+
+```
+POST /upload-currency
+Content-Type: text/plain
+
+CURRENCY_CODE=XYZ
+CURRENCY_NAME=Example Currency
+CURRENCY_SYMBOL=#
+100_note=100000
+50_note=50000
+10_coin=10000
+```
+
+**Response:**
+
+```json
+{
+  "message": "Custom currency XYZ registered successfully",
+  "currency_code": "XYZ",
+  "currency_name": "Example Currency"
+}
+```
+
+### Using Custom Currency
+
+**Request:**
+
+```
+POST /calculate-change?currency=XYZ
+Content-Type: text/plain
+
+10.50,20.00
+```
+
+**Response:**
+
+```
+1 100_note, 1 10_coin
+```
+
+## Adding Built-in Currencies
+
+To add support for a new built-in currency:
 
 1. Add currency configuration to `currencies.py`:
 
